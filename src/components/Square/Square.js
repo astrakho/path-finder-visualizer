@@ -3,6 +3,15 @@ import "./Square.css";
 import Start from "../../icons/start";
 
 class Square extends Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.isStart === nextProps.isStart) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   render() {
     const { row, col, isStart, isTarget, onClick } = this.props;
 
