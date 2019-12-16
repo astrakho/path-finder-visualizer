@@ -10,7 +10,7 @@ import "./StartWrapper.css";
 
 function Start(){
   const [{isDragging}, drag] = useDrag({
-    item: { type: ItemTypes.START },
+    item: { id: 'start', type: ItemTypes.START },
 		collect: monitor => ({
 			isDragging: !!monitor.isDragging(),
 		}),

@@ -5,15 +5,28 @@ import Target from "../../icons/target";
 
 import { ItemTypes } from "../../constants/itemTypes";
 import { useDrop } from "react-dnd";
+import { enumDeclaration } from "@babel/types";
 
 // Square is a functional component, utilizing hooks
 
 const Square = React.memo(props => {
-  const { row, col, isStart, isTarget, onClick, moveItem } = props;
+  const { row, col, currentStart, currentEnd, moveStart, moveTarget} = props;
+
+  const [startRow, startCol] = currentStart; 
+  const [targetRow, targetCol] = currentEnd;
+
+  const isStart = row === startRow && col === startCol;
+  const isTarget = row === targetRow && col === targetCol;
 
   const [{ isOver }, drop] = useDrop({
     accept: [ItemTypes.START, ItemTypes.TARGET],
-    drop: () => moveItem(row, col, ),
+    drop: function (i){
+      if(i.type === 'start'){
+        moveStart(row, col, i.type);
+      } else if(i.type === 'target'){
+        moveTarget(row, col);
+      }
+    },
     collect: mon => ({
       isOver: !!mon.isOver(),
       canDrop: !!mon.canDrop()
@@ -32,7 +45,6 @@ const Square = React.memo(props => {
       <div
         className="Square"
         id={`node-${row}-${col}`}
-        onClick={() => onClick(row, col)}
       >
         {isStart === true ? <Start /> : null}
         {isTarget === true ? <Target /> : null}

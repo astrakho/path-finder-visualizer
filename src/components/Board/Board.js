@@ -4,6 +4,7 @@ import "./Board.css";
 import update from "immutability-helper";
 import { DndProvider } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
+import { type } from "os";
 
 class Board extends Component {
   constructor() {
@@ -14,18 +15,17 @@ class Board extends Component {
       this.pendingUpdateFn = undefined;
       this.requestedFrame = undefined;
     };
-    this.moveItem = (toRow, toCol) => {
-      const { grid, currentStart, currentTarget } = this.state;
-
+    this.moveStart = (toRow, toCol) => {
       this.scheduleUpdate({
-        grid: {
-          [toRow]: {
-            [toCol]: {
-              isStart: {
-                $set: true
-              }
-            }
-          }
+        currentStart:{ 
+          $set: [toRow, toCol] 
+        }
+      });
+    };
+    this.moveTarget = (toRow, toCol) => {
+      this.scheduleUpdate({
+        currentTarget:{ 
+          $set: [toRow, toCol] 
         }
       });
     };
@@ -61,9 +61,10 @@ class Board extends Component {
             key={`${r}-${c}`}
             row={r}
             col={c}
-            isStart={this.state.grid[r][c].isStart}
-            isTarget={this.state.grid[r][c].isTarget}
-            moveItem={(r, c) => this.moveItem(r, c)}
+            currentStart = {this.state.currentStart}
+            currentEnd ={this.state.currentTarget}
+            moveStart={(r, c) => this.moveStart(r, c)}
+            moveTarget={(r, c) => this.moveTarget(r, c)}
           />
         );
       });
@@ -84,6 +85,7 @@ class Board extends Component {
     );
   }
 
+  // Wrapping an expensive Function Call in requestAnimationFrame
   scheduleUpdate(updateFn) {
     this.pendingUpdateFn = updateFn;
     if (!this.requestedFrame) {
