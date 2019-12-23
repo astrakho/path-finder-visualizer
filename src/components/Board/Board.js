@@ -4,7 +4,7 @@ import "./Board.css";
 import update from "immutability-helper";
 import { DndProvider } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
-import { type } from "os";
+
 
 class Board extends Component {
   constructor() {
@@ -32,7 +32,8 @@ class Board extends Component {
     this.state = {
       grid: [],
       currentStart: [],
-      currentTarget: []
+      currentTarget: [],
+      isMouseDown: false
     };
   }
 
@@ -43,7 +44,8 @@ class Board extends Component {
     this.setState({
       grid: grid,
       currentStart: start,
-      currentTarget: target
+      currentTarget: target,
+      isMouseDown: false,
     });
   }
 
@@ -51,6 +53,24 @@ class Board extends Component {
     if (this.requestedFrame !== undefined) {
       cancelAnimationFrame(this.requestedFrame);
     }
+  }
+
+  handleMouseDown(row, col) {
+    console.log('Mouse Down');
+    const newGrid = toggleWall(this.state.grid, row, col);
+    this.setState({grid: newGrid, isMouseDown: true});
+  }
+
+  handleMouseEnter(row, col) {
+    console.log('Mouse Entered');
+    if (!this.state.isMouseDown) return;
+    const newGrid = toggleWall(this.state.grid, row, col);
+    this.setState({grid: newGrid});
+  }
+
+  handleMouseUp() {
+    console.log('Mouse Up');
+    this.setState({isMouseDown: false});
   }
 
   render() {
@@ -63,8 +83,12 @@ class Board extends Component {
             col={c}
             currentStart = {this.state.currentStart}
             currentEnd ={this.state.currentTarget}
+            isWall={this.state.grid[r][c].isWall}
             moveStart={(r, c) => this.moveStart(r, c)}
             moveTarget={(r, c) => this.moveTarget(r, c)}
+            handleMouseDown={(r, c) => this.handleMouseDown(r, c)}
+            handleMouseUp={(r, c) => this.handleMouseUp(r, c)}
+            handleMouseEnter={(r, c) => this.handleMouseEnter(r, c)}
           />
         );
       });
@@ -104,12 +128,18 @@ const initializeGrid = ([startRow, startCol], [endRow, endCol]) => {
     }
     grid.push(currentRow);
   }
-
-  // Add Default Start and Target
-  grid[startRow][startCol].isStart = true;
-  grid[endRow][endCol].isTarget = true;
-
   return grid;
+};
+
+const toggleWall = (grid, row, col) => {
+  const newGrid = grid.slice();
+  const node = newGrid[row][col];
+  const newNode = {
+    ...node,
+    isWall: !node.isWall,
+  };
+  newGrid[row][col] = newNode;
+  return newGrid;
 };
 
 // Creates an Object, representing a Square's State
@@ -118,7 +148,8 @@ const createSquare = (r, c) => {
     row: r,
     col: c,
     isStart: false,
-    isTarget: false
+    isTarget: false,
+    isWall: false
   };
 };
 
