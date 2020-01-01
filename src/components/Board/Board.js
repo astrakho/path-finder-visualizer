@@ -4,6 +4,7 @@ import "./Board.css";
 import update from "immutability-helper";
 import { DndProvider } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
+import { dijkstra } from "../../algorithms/dijkstra.js";
 
 
 class Board extends Component {
@@ -56,21 +57,34 @@ class Board extends Component {
   }
 
   handleMouseDown(row, col) {
-    console.log('Mouse Down');
+    if(this.state.currentStart[0] === row && this.state.currentStart[1] === col){
+      return;
+    } else if(this.state.currentTarget[0] === row && this.state.currentTarget[1] === col){
+      return;
+    }
     const newGrid = toggleWall(this.state.grid, row, col);
     this.setState({grid: newGrid, isMouseDown: true});
   }
 
   handleMouseEnter(row, col) {
-    console.log('Mouse Entered');
+    if(this.state.currentStart[0] === row && this.state.currentStart[1] === col){
+      return;
+    } else if(this.state.currentTarget[0] === row && this.state.currentTarget[1] === col){
+      return;
+    }
     if (!this.state.isMouseDown) return;
     const newGrid = toggleWall(this.state.grid, row, col);
     this.setState({grid: newGrid});
   }
 
   handleMouseUp() {
-    console.log('Mouse Up');
     this.setState({isMouseDown: false});
+  }
+
+  //Run Algoerithms Handler
+  runDijkstra(){
+    console.log("Pressed Button");
+    dijkstra(this.state.grid, this.state.currentStart);
   }
 
   render() {
@@ -96,6 +110,7 @@ class Board extends Component {
 
     return (
       <DndProvider backend={HTML5Backend}>
+        <button onClick={() => this.runDijkstra()}>Visualize Dijkstra's</button>
         <div
           style={{
             display: "inline-grid",
@@ -116,6 +131,8 @@ class Board extends Component {
       this.requestedFrame = requestAnimationFrame(this.drawFrame);
     }
   }
+
+  
 }
 
 // Function to Initialize Grid
