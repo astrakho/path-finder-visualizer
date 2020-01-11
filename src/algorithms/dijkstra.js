@@ -21,14 +21,21 @@ export function dijkstra(grid, source) {
   while (unVisitedNodes.length > 0){
 
     // Get Node with Shortest distance
-    sortNodesByDistance(unvisitedNodes);
+    sortNodesByDistance(unVisitedNodes);
     
     // Remove Picked Node from Unvisited Array, essentially marking a Node visited
     let minNode = unVisitedNodes.shift();
 
+    let neighbors = getNeighbors(minNode);
+
     // For each neighboring Node, update distances if needed
+    for(const v of neighbors){
+      v.distance = minNode.distance + 1;
+    }
 
+    // Mark expored Nodes as green
 
+    
 
   }
 
@@ -50,6 +57,16 @@ function flattenGraph(grid){
     }
   }
   return squares;
+}
+
+function getNeighbors(node, unVisitedNodes) {
+  const neighbors = [];
+  const {col, row} = node;
+  if (row > 0) neighbors.push(unVisitedNodes[row - 1][col]);
+  if (row < unVisitedNodes.length - 1) neighbors.push(unVisitedNodes[row + 1][col]);
+  if (col > 0) neighbors.push(unVisitedNodes[row][col - 1]);
+  if (col < unVisitedNodes[0].length - 1) neighbors.push(unVisitedNodes[row][col + 1]);
+  return neighbors;
 }
 
 // Sort Nodes By Distance

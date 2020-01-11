@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Square from "../Square/Square";
 import "./Board.css";
 import update from "immutability-helper";
@@ -6,133 +6,130 @@ import { DndProvider } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
 import { dijkstra } from "../../algorithms/dijkstra.js";
 
+import { useSprings, animated } from 'react-spring';
 
-class Board extends Component {
-  constructor() {
-    super();
-    this.drawFrame = () => {
-      const nextState = update(this.state, this.pendingUpdateFn);
-      this.setState(nextState);
-      this.pendingUpdateFn = undefined;
-      this.requestedFrame = undefined;
-    };
-    this.moveStart = (toRow, toCol) => {
-      this.scheduleUpdate({
-        currentStart:{ 
-          $set: [toRow, toCol] 
-        }
-      });
-    };
-    this.moveTarget = (toRow, toCol) => {
-      this.scheduleUpdate({
-        currentTarget:{ 
-          $set: [toRow, toCol] 
-        }
-      });
-    };
-    this.state = {
-      grid: [],
-      currentStart: [],
-      currentTarget: [],
-      isMouseDown: false
-    };
-  }
 
-  componentDidMount() {
-    const start = [10, 20];
-    const target = [10, 40];
-    const grid = initializeGrid(start, target);
-    this.setState({
-      grid: grid,
-      currentStart: start,
-      currentTarget: target,
-      isMouseDown: false,
+
+function Board () {
+
+  const currentStart = useState([10, 20]);
+  const currentTarget = useState([10, 40]);
+  let grid = useState(initializeGrid(currentStart, currentTarget));
+  const isMouseDown = useState(false);
+
+  function drawFrame() {
+    const nextState = update(this.state, this.pendingUpdateFn);
+    this.setState(nextState);
+    this.pendingUpdateFn = undefined;
+    this.requestedFrame = undefined;
+  };
+
+  function moveStart(toRow, toCol) {
+    this.scheduleUpdate({
+      currentStart:{ 
+        $set: [toRow, toCol] 
+      }
     });
-  }
+  };
 
-  componentWillUnmount() {
-    if (this.requestedFrame !== undefined) {
-      cancelAnimationFrame(this.requestedFrame);
-    }
-  }
+  function moveTarget (toRow, toCol) {
+    this.scheduleUpdate({
+      currentTarget:{ 
+        $set: [toRow, toCol] 
+      }
+    });
+  };
 
-  handleMouseDown(row, col) {
-    if(this.state.currentStart[0] === row && this.state.currentStart[1] === col){
+  function handleMouseDown(row, col) {
+    if(currentStart[0] === row && currentStart[1] === col){
       return;
-    } else if(this.state.currentTarget[0] === row && this.state.currentTarget[1] === col){
+    } else if(currentTarget[0] === row && currentTarget[1] === col){
       return;
     }
-    const newGrid = toggleWall(this.state.grid, row, col);
+    const newGrid = toggleWall(grid, row, col);
     this.setState({grid: newGrid, isMouseDown: true});
   }
 
-  handleMouseEnter(row, col) {
-    if(this.state.currentStart[0] === row && this.state.currentStart[1] === col){
+  function handleMouseEnter(row, col) {
+    if(currentStart[0] === row && currentStart[1] === col){
       return;
-    } else if(this.state.currentTarget[0] === row && this.state.currentTarget[1] === col){
+    } else if(currentTarget[0] === row && currentTarget[1] === col){
       return;
     }
-    if (!this.state.isMouseDown) return;
-    const newGrid = toggleWall(this.state.grid, row, col);
+    if (!isMouseDown) return;
+    const newGrid = toggleWall(grid, row, col);
     this.setState({grid: newGrid});
   }
 
-  handleMouseUp() {
+  function handleMouseUp() {
     this.setState({isMouseDown: false});
   }
 
   //Run Algoerithms Handler
-  runDijkstra(){
+  function runDijkstra(){
     console.log("Pressed Button");
-    dijkstra(this.state.grid, this.state.currentStart);
+    dijkstra(grid, currentStart);
   }
 
-  render() {
-    let gridToShow = this.state.grid.map((row, r) => {
-      return row.map((col, c) => {
-        return (
-          <Square
-            key={`${r}-${c}`}
-            row={r}
-            col={c}
-            currentStart = {this.state.currentStart}
-            currentEnd ={this.state.currentTarget}
-            isWall={this.state.grid[r][c].isWall}
-            moveStart={(r, c) => this.moveStart(r, c)}
-            moveTarget={(r, c) => this.moveTarget(r, c)}
-            handleMouseDown={(r, c) => this.handleMouseDown(r, c)}
-            handleMouseUp={(r, c) => this.handleMouseUp(r, c)}
-            handleMouseEnter={(r, c) => this.handleMouseEnter(r, c)}
-          />
-        );
-      });
-    });
+  /*
+  function animateDijkstra(){
+     // NOT NEEDED: Store indicies of Each Square as a local ref, representing the order
 
-    return (
-      <DndProvider backend={HTML5Backend}>
-        <button onClick={() => this.runDijkstra()}>Visualize Dijkstra's</button>
-        <div
-          style={{
-            display: "inline-grid",
-            gridTemplateColumns: `repeat(${50}, 28px)`,
-            justifyItems: "center"
-          }}
-        >
-          {gridToShow.length > 0 ? gridToShow : "Sorry, Nothing to Display"}
-        </div>
-      </DndProvider>
-    );
-  }
+    // Create Springs, each representing a square, handling its animation
+    const [springs, setSprings, stop] = useSprings(50, index => ({ to: { color: "red" }}));
+
+    // Feed springs new style data, they'll animate the view without causing a single render
+    setSprings({to: { color: "red" }})
+
+          {springs.map(props => <animated.div style={props} />)}
+
+
+    // Distribute animated props among the view
+  }*/
+
+  let gridToShow = grid.map(function(row, r){
+    return ( row.map((col, c) => {
+      return (
+        <Square
+          key={`${r}-${c}`}
+          row={r}
+          col={c}
+          currentStart = {currentStart}
+          currentEnd ={currentTarget}
+          isWall={grid[r][c].isWall}
+          moveStart={(r, c) => moveStart(r, c)}
+          moveTarget={(r, c) => moveTarget(r, c)}
+          handleMouseDown={(r, c) => handleMouseDown(r, c)}
+          handleMouseUp={(r, c) => handleMouseUp(r, c)}
+          handleMouseEnter={(r, c) => handleMouseEnter(r, c)}
+        />
+      );
+    }));
+  });
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <button onClick={() => this.runDijkstra()}>Visualize Dijkstra's</button>
+      <div
+        style={{
+          display: "inline-grid",
+          gridTemplateColumns: `repeat(${50}, 28px)`,
+          justifyItems: "center"
+        }}
+      >
+        {gridToShow.length > 0 ? gridToShow : "Sorry, Nothing to Display"}
+      </div>
+    </DndProvider>
+  );
 
   // Wrapping an expensive Function Call in requestAnimationFrame
-  scheduleUpdate(updateFn) {
+  function scheduleUpdate(updateFn) {
     this.pendingUpdateFn = updateFn;
     if (!this.requestedFrame) {
       this.requestedFrame = requestAnimationFrame(this.drawFrame);
     }
   }
 
-  
 }
 
 // Function to Initialize Grid
