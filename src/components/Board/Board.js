@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Square from "../Square/Square";
 import "./Board.css";
 import update from "immutability-helper";
@@ -6,67 +6,50 @@ import { DndProvider } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
 import { dijkstra } from "../../algorithms/dijkstra.js";
 
-import { useSprings, animated } from 'react-spring';
+import { useSprings, animated } from "react-spring";
 
-
-
-function Board () {
-
-  const currentStart = useState([10, 20]);
-  const currentTarget = useState([10, 40]);
-  let grid = useState(initializeGrid(currentStart, currentTarget));
-  const isMouseDown = useState(false);
-
-  function drawFrame() {
-    const nextState = update(this.state, this.pendingUpdateFn);
-    this.setState(nextState);
-    this.pendingUpdateFn = undefined;
-    this.requestedFrame = undefined;
-  };
+function Board() {
+  const [currentStart, setCurrentStart] = useState([10, 20]);
+  const [currentTarget, setCurrentTarget] = useState([10, 40]);
+  const [grid, setGrid] = useState(initializeGrid(currentStart, currentTarget));
+  const isMouseDown = useRef(false);
 
   function moveStart(toRow, toCol) {
-    this.scheduleUpdate({
-      currentStart:{ 
-        $set: [toRow, toCol] 
-      }
-    });
-  };
+    setCurrentStart([toRow, toCol]);
+  }
 
-  function moveTarget (toRow, toCol) {
-    this.scheduleUpdate({
-      currentTarget:{ 
-        $set: [toRow, toCol] 
-      }
-    });
-  };
+  function moveTarget(toRow, toCol) {
+    setCurrentTarget([toRow, toCol]);
+  }
 
   function handleMouseDown(row, col) {
-    if(currentStart[0] === row && currentStart[1] === col){
+    if (currentStart[0] === row && currentStart[1] === col) {
       return;
-    } else if(currentTarget[0] === row && currentTarget[1] === col){
+    } else if (currentTarget[0] === row && currentTarget[1] === col) {
       return;
     }
     const newGrid = toggleWall(grid, row, col);
-    this.setState({grid: newGrid, isMouseDown: true});
+    isMouseDown.current = true;
+    setGrid(newGrid);
   }
 
-  function handleMouseEnter(row, col) {
-    if(currentStart[0] === row && currentStart[1] === col){
+  const handleMouseEnter = useCallback((row, col) => {
+    if (currentStart[0] === row && currentStart[1] === col) {
       return;
-    } else if(currentTarget[0] === row && currentTarget[1] === col){
+    } else if (currentTarget[0] === row && currentTarget[1] === col) {
       return;
     }
-    if (!isMouseDown) return;
+    if (!isMouseDown.current) return;
     const newGrid = toggleWall(grid, row, col);
-    this.setState({grid: newGrid});
-  }
+    setGrid(newGrid);
+  });
 
   function handleMouseUp() {
-    this.setState({isMouseDown: false});
+    isMouseDown.current = false;
   }
 
   //Run Algoerithms Handler
-  function runDijkstra(){
+  function runDijkstra() {
     console.log("Pressed Button");
     dijkstra(grid, currentStart);
   }
@@ -87,15 +70,15 @@ function Board () {
     // Distribute animated props among the view
   }*/
 
-  let gridToShow = grid.map(function(row, r){
-    return ( row.map((col, c) => {
+  let gridToShow = grid.map(function(row, r) {
+    return row.map((col, c) => {
       return (
         <Square
           key={`${r}-${c}`}
           row={r}
           col={c}
-          currentStart = {currentStart}
-          currentEnd ={currentTarget}
+          currentStart={currentStart}
+          currentEnd={currentTarget}
           isWall={grid[r][c].isWall}
           moveStart={(r, c) => moveStart(r, c)}
           moveTarget={(r, c) => moveTarget(r, c)}
@@ -104,12 +87,12 @@ function Board () {
           handleMouseEnter={(r, c) => handleMouseEnter(r, c)}
         />
       );
-    }));
+    });
   });
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <button onClick={() => this.runDijkstra()}>Visualize Dijkstra's</button>
+      <button onClick={() => runDijkstra()}>Visualize Dijkstra's</button>
       <div
         style={{
           display: "inline-grid",
@@ -121,15 +104,6 @@ function Board () {
       </div>
     </DndProvider>
   );
-
-  // Wrapping an expensive Function Call in requestAnimationFrame
-  function scheduleUpdate(updateFn) {
-    this.pendingUpdateFn = updateFn;
-    if (!this.requestedFrame) {
-      this.requestedFrame = requestAnimationFrame(this.drawFrame);
-    }
-  }
-
 }
 
 // Function to Initialize Grid
@@ -150,7 +124,7 @@ const toggleWall = (grid, row, col) => {
   const node = newGrid[row][col];
   const newNode = {
     ...node,
-    isWall: !node.isWall,
+    isWall: !node.isWall
   };
   newGrid[row][col] = newNode;
   return newGrid;
