@@ -51,7 +51,12 @@ function Board() {
   //Run Algoerithms Handler
   function runDijkstra() {
     console.log("Pressed Button");
-    dijkstra(grid, currentStart);
+    let visitedNodesInOrder = dijkstra(grid, currentStart);
+    for (let i = 0; i < visitedNodesInOrder.length; i++){
+      setTimeout(() => {
+        document.getElementById(`node-${visitedNodesInOrder[i].row}-${visitedNodesInOrder[i].col}`).style.backgroundColor  = "red";
+      }, 10 * i);
+    }
   }
 
   /*

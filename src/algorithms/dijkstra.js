@@ -12,11 +12,14 @@ export function dijkstra(grid, source) {
   // Array of Unvisited Nodes
   let unVisitedNodes = [];
 
+  // Array of Visited Nodes used for Animation
+  let visitedNodesInOrder = [];
+
   // Populate unVisitedNodes with every vertex from Graph
   unVisitedNodes = flattenGraph(grid, source);
 
   // Set Starting Node distance to 0
-  unVisitedNodes[(sourceX*49) + sourceY].distance = 0;
+  unVisitedNodes[(sourceX*50) + sourceY].distance = 0;
 
   while (unVisitedNodes.length > 0){
 
@@ -26,20 +29,25 @@ export function dijkstra(grid, source) {
     // Remove Picked Node from Unvisited Array, essentially marking a Node visited
     let minNode = unVisitedNodes.shift();
 
-    let neighbors = getNeighbors(minNode);
+    console.log(minNode);
+
+    let neighbors = getNeighbors(minNode, grid);
 
     // For each neighboring Node, update distances if needed
     for(const v of neighbors){
       v.distance = minNode.distance + 1;
+      if(v.isVisited == null){
+        visitedNodesInOrder.push(v);
+        v.isVisited = true;
+      }
     }
-
-    // Mark expored Nodes as green
-
     
-
   }
 
+  console.log(visitedNodesInOrder);
+
   // Return an array of distances
+  return(visitedNodesInOrder);
 
 }
 
@@ -59,17 +67,17 @@ function flattenGraph(grid){
   return squares;
 }
 
-function getNeighbors(node, unVisitedNodes) {
+function getNeighbors(node, grid) {
   const neighbors = [];
-  const {col, row} = node;
-  if (row > 0) neighbors.push(unVisitedNodes[row - 1][col]);
-  if (row < unVisitedNodes.length - 1) neighbors.push(unVisitedNodes[row + 1][col]);
-  if (col > 0) neighbors.push(unVisitedNodes[row][col - 1]);
-  if (col < unVisitedNodes[0].length - 1) neighbors.push(unVisitedNodes[row][col + 1]);
+  const {row, col} = node;
+  if (row > 0) neighbors.push(grid[row - 1][col]);
+  if (row < grid.length - 1) neighbors.push(grid[row + 1][col]);
+  if (col > 0) neighbors.push(grid[row][col - 1]);
+  if (col < grid.length - 1) neighbors.push(grid[row][col + 1]);
   return neighbors;
 }
 
 // Sort Nodes By Distance
-function sortNodesByDistance(unvisitedNodes){
-  unvisitedNodes.sort((nodeA, nodeB) => nodeA.distance - nodeB.distance);
+function sortNodesByDistance(dNodes){
+  dNodes.sort((nodeA, nodeB) => nodeA.distance - nodeB.distance);
 }
