@@ -3,7 +3,7 @@
  * Source is an Array  with two elements
  */
 
-export function dijkstra(grid, source) {
+export function dijkstra(grid, source, target) {
   const [sourceX, sourceY] = source;
 
   // The output array.  dist[i] will hold the shortest distance from src to each Node
@@ -28,10 +28,16 @@ export function dijkstra(grid, source) {
     // Remove Picked Node from Unvisited Array, essentially marking a Node visited
     let minNode = unVisitedNodes.shift();
 
+    // Stop if popped node has distance of infinity
+    if (minNode.distance === Infinity) {
+      break;
+    }
+
     let neighbors = getNeighbors(minNode, grid);
 
     // For each neighboring Node, update distances if needed
     for (const v of neighbors) {
+      // Skip Iteration for Walls
       if (v.isWall === true) {
         continue;
       }
@@ -40,6 +46,10 @@ export function dijkstra(grid, source) {
       if (v.isVisited == null) {
         visitedNodesInOrder.push(v);
         v.isVisited = true;
+        // Stop if neighbor node id target
+        if (v.row === target[0] && v.col === target[1]) {
+          return visitedNodesInOrder;
+        }
       }
     }
   }

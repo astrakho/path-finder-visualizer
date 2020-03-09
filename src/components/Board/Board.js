@@ -51,7 +51,7 @@ function Board() {
   //Run Algoerithms Handler
   function runDijkstra() {
     console.log("Pressed Button");
-    let visitedNodesInOrder = dijkstra(grid, currentStart);
+    let visitedNodesInOrder = dijkstra(grid, currentStart, currentTarget);
     for (let i = 0; i < visitedNodesInOrder.length; i++){
       setTimeout(() => {
         document.getElementById(`node-${visitedNodesInOrder[i].row}-${visitedNodesInOrder[i].col}`).style.backgroundColor  = "red";
