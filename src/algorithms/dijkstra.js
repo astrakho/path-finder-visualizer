@@ -15,6 +15,9 @@ export function dijkstra(grid, source, target) {
   // Array of Visited Nodes used for Animation
   let visitedNodesInOrder = [];
 
+  // Array to Store Previous Nodes
+  let prev = [];
+
   // Populate unVisitedNodes with every vertex from Graph
   unVisitedNodes = flattenGraph(grid, source);
 
@@ -41,21 +44,29 @@ export function dijkstra(grid, source, target) {
       if (v.isWall === true) {
         continue;
       }
-      v.distance = minNode.distance + 1;
-      v.prev = minNode;
+
+      let alt = minNode.distance + 1;
+
+      // Assign Distances
+      if(alt < v.distance){
+        v.distance = alt;
+        v.prev = minNode;
+      }
+
+      // Append to Visited Array for later animation
       if (v.isVisited == null) {
         visitedNodesInOrder.push(v);
         v.isVisited = true;
         // Stop if neighbor node id target
         if (v.row === target[0] && v.col === target[1]) {
-          return visitedNodesInOrder;
+          v.prev = minNode;
+          return [visitedNodesInOrder, getShortestPath(v)];
         }
       }
     }
   }
 
-  // Return an array of distances
-  return visitedNodesInOrder;
+  return [visitedNodesInOrder];
 }
 
 // Flattens the Graph and assigns Distance of Infinity to each square
@@ -84,4 +95,15 @@ function getNeighbors(node, grid) {
 // Sort Nodes By Distance
 function sortNodesByDistance(dNodes) {
   dNodes.sort((nodeA, nodeB) => nodeA.distance - nodeB.distance);
+}
+
+// Return Array of Nodes in Shortest Path
+function getShortestPath(target){
+  let shortestPath = [];
+  let curNode = target;
+  while(curNode != null){
+    shortestPath.unshift(curNode);
+    curNode = curNode.prev;
+  }
+  return shortestPath;
 }

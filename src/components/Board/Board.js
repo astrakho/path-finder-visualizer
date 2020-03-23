@@ -48,15 +48,28 @@ function Board() {
     isMouseDown.current = false;
   }
 
-  //Run Algoerithms Handler
+  //Run Algorithms Handler
   function runDijkstra() {
     console.log("Pressed Button");
     let visitedNodesInOrder = dijkstra(grid, currentStart, currentTarget);
-    for (let i = 0; i < visitedNodesInOrder.length; i++){
-      setTimeout(() => {
-        document.getElementById(`node-${visitedNodesInOrder[i].row}-${visitedNodesInOrder[i].col}`).style.backgroundColor  = "red";
-      }, 10 * i);
-    }
+    let promise = new Promise (function(resolve, reject){
+      for (let i = 0; i < visitedNodesInOrder[0].length; i++){
+        setTimeout(() => {
+          if(i === visitedNodesInOrder[0].length-1){
+            return resolve('Done');
+          }
+          document.getElementById(`node-${visitedNodesInOrder[0][i].row}-${visitedNodesInOrder[0][i].col}`).style.backgroundColor  = "red";
+        }, 10 * i);
+      }
+    });
+    promise.then( function(){
+        for (let i = 0; i < visitedNodesInOrder[1].length; i++){
+          setTimeout(() => {
+            document.getElementById(`node-${visitedNodesInOrder[1][i].row}-${visitedNodesInOrder[1][i].col}`).style.backgroundColor  = "green";
+          }, 10 * i);
+        }
+      }
+    );
   }
 
   /*
